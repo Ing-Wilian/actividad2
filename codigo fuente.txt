@@ -1,0 +1,71 @@
+import heapq
+
+
+class GrafoTransporte:
+    def __init__(self):
+        self.grafo = {}
+
+    def agregar_estacion(self, estacion):
+        if estacion not in self.grafo:
+            self.grafo[estacion] = []
+
+    def agregar_conexion(self, desde, hasta, costo):
+        self.grafo[desde].append((hasta, costo))
+        self.grafo[hasta].append((desde, costo))  # Si el transporte es bidireccional
+
+
+def a_estrella(grafo, inicio, objetivo, heuristica):
+    # Cola de prioridad para gestionar las rutas más prometedoras
+    cola_prioridad = []
+    heapq.heappush(cola_prioridad, (0, inicio))  # (costo acumulado, nodo actual)
+    
+ 
+    costos_acumulados = {inicio: 0}
+    rutas_optimas = {inicio: None}
+    
+    while cola_prioridad:
+        costo_actual, nodo_actual = heapq.heappop(cola_prioridad)
+
+        if nodo_actual == objetivo:
+            # Reconstruir la ruta
+            ruta = []
+            while nodo_actual:
+                ruta.append(nodo_actual)
+                nodo_actual = rutas_optimas[nodo_actual]
+            return ruta[::-1]  # Devolver la ruta invertida
+        
+   
+        for vecino, costo in grafo[nodo_actual]:
+            nuevo_costo = costo_actual + costo
+            if vecino not in costos_acumulados or nuevo_costo < costos_acumulados[vecino]:
+                costos_acumulados[vecino] = nuevo_costo
+                prioridad = nuevo_costo + heuristica(vecino, objetivo)
+                heapq.heappush(cola_prioridad, (prioridad, vecino))
+                rutas_optimas[vecino] = nodo_actual
+    
+    return None  # Si no se encuentra ruta
+
+
+def heuristica(estacion_a, estacion_b):
+    # Aquí podrías implementar una heurística específica, como la distancia euclidiana
+    return 0  # Suponiendo una heurística nula para simplificar
+
+grafo_transporte = GrafoTransporte()
+grafo_transporte.agregar_estacion('A')
+grafo_transporte.agregar_estacion('B')
+grafo_transporte.agregar_estacion('C')
+grafo_transporte.agregar_estacion('D')
+
+grafo_transporte.agregar_conexion('A', 'B', 3)
+grafo_transporte.agregar_conexion('A', 'C', 1)
+grafo_transporte.agregar_conexion('B', 'D', 2)
+grafo_transporte.agregar_conexion('C', 'D', 5)
+
+
+inicio = 'A'
+objetivo = 'D'
+
+
+ruta_optima = a_estrella(grafo_transporte.grafo, inicio, objetivo, heuristica)
+
+print(f"La mejor ruta de {inicio} a {objetivo} es: {ruta_optima}")
